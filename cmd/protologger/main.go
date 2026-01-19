@@ -21,8 +21,9 @@ func main() {
 	f, err := os.OpenFile(
 		protologgerFile+
 			"file"+
-			strconv.Itoa(time.Now().Nanosecond())+
-			".txt", os.O_WRONLY|os.O_CREATE,
+			strconv.FormatInt(time.Now().UnixNano(), 10)+
+			".txt",
+		os.O_WRONLY|os.O_CREATE,
 		0666,
 	)
 	if err != nil {

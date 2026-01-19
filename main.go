@@ -8,9 +8,11 @@ import (
 	"os"
 
 	pluginpb "github.com/dzamyatin/protoc-api-registrator/proto/generated"
+	_ "github.com/grpc-ecosystem/grpc-gateway/v2/internal/descriptor"
 	"google.golang.org/grpc/encoding"
 	_ "google.golang.org/grpc/encoding/proto"
 	"google.golang.org/grpc/mem"
+	_ "google.golang.org/protobuf/compiler/protogen"
 )
 
 //go:generate protoc -I ./proto --go_out=./proto/generated/ --go_opt=paths=source_relative plugin.proto
@@ -26,18 +28,22 @@ func main() {
 		panic(err)
 	}
 
-	out := os.Stdout
-	out.Write([]byte("hela"))
+	buf, err := encoding.GetCodecV2("proto").Marshal(createResponse())
+	if err != nil {
+		panic(err)
+	}
+
+	_, err = os.Stdout.Write(buf.Materialize())
+	if err != nil {
+		panic(err)
+	}
 }
 
-func createResponse() pluginpb.CodeGeneratorResponse {
-
-	return pluginpb.CodeGeneratorResponse{
+func createResponse() *pluginpb.CodeGeneratorResponse {
+	return &pluginpb.CodeGeneratorResponse{
 		Error:             nil,
 		SupportedFeatures: nil,
-		File: []*pluginpb.CodeGeneratorResponse_File{
-			{},
-		},
+		File:              []*pluginpb.CodeGeneratorResponse_File{},
 	}
 }
 
