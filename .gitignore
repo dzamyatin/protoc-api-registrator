@@ -2,3 +2,4 @@
 var/protologger/*
 !var/protologger/.gitignore
 test.txt
+bin
