@@ -43,10 +43,10 @@ func main() {
 }
 
 func createResponse() pluginpb.CodeGeneratorResponse {
-
+	i := uint64(1)
 	return pluginpb.CodeGeneratorResponse{
 		Error:             nil,
-		SupportedFeatures: nil,
+		SupportedFeatures: &i,
 		File:              []*pluginpb.CodeGeneratorResponse_File{},
 	}
 }
