@@ -1,12 +1,12 @@
 package main
 
 import (
-	annotations "github.com/dzamyatin/protoc-api-registrator/proto/generated/google/api" //authomatically init to make oriti iotuion available to parse
-	"google.golang.org/grpc/encoding"
+	_ "github.com/dzamyatin/protoc-api-registrator/proto/generated/google/api"          //authomatically init to make oriti iotuion available to parse
+	annotation "github.com/dzamyatin/protoc-api-registrator/proto/generated/google/api" //authomatically init to make oriti iotuion available to parse
 	_ "google.golang.org/grpc/encoding/proto"
-	"google.golang.org/grpc/mem"
 	"google.golang.org/protobuf/compiler/protogen"
 	_ "google.golang.org/protobuf/compiler/protogen"
+	"google.golang.org/protobuf/proto"
 	"google.golang.org/protobuf/types/descriptorpb"
 )
 
@@ -28,21 +28,38 @@ func main() {
 						continue
 					}
 
+					e, ok := proto.GetExtension(option, annotation.E_Http).(*annotation.HttpRule)
+					if !ok {
+
+						continue
+					}
+					p := e.GetPattern()
+					_ = p
+					//_ = e
+					//prm := option.ProtoReflect()
+					//_ = prm
+					//_ = option
+					//s := option.String()
+					//option.extensionFields
+
+					//h := annotations.Http{}
+					//proto.GetExtension(&h, option.)
+					//_ = s
 					//fmt.Println(option.String())
 					//for _, unint := range option.String() {
 					//	_ = unint
 					//}
-
-					req := new(annotations.Http)
-
-					sl := mem.BufferSlice{}
-					data := option.String()
-					sl = append(sl, mem.SliceBuffer(data))
-
-					err := encoding.GetCodecV2("proto").Unmarshal(sl, req)
-					if err != nil {
-						continue
-					}
+					//
+					//req := new(annotations.Http)
+					//
+					//sl := mem.BufferSlice{}
+					//data := option.String()
+					//sl = append(sl, mem.SliceBuffer(data))
+					//
+					//err := encoding.GetCodecV2("proto").Unmarshal(sl, req)
+					//if err != nil {
+					//	continue
+					//}
 				}
 			}
 		}
