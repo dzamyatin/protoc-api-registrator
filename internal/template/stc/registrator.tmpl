@@ -1,0 +1,17 @@
+package "_PUTSOME"
+
+type Registrator struct {
+	url []string
+}
+
+func NewRegistrator() *Registrator {
+	return &Registrator{
+		url: []string{
+			"_PUTSOME",
+		},
+	}
+}
+
+func (r *Registrator) GetRegistered() []string {
+	return r.url
+}
