@@ -94,10 +94,13 @@ func main() {
 
 			content := strings.Builder{}
 
-			tplRegistrator.Execute(&content, Data{
+			err = tplRegistrator.Execute(&content, Data{
 				PackageName: string(packageName),
 				Urls:        urls,
 			})
+			if err != nil {
+				return errors.Wrap(err, "failed to execute template")
+			}
 
 			contentString := content.String()
 
