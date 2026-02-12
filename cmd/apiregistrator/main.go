@@ -30,7 +30,7 @@ type Path struct {
 	Method string
 }
 
-//go:generate protoc -I ./proto --go_out=./proto/generated/ --go_opt=paths=source_relative plugin.proto
+// //go:generate protoc -I ./proto --go_out=./proto/generated/ --go_opt=paths=source_relative plugin.proto
 func main() {
 	protogen.Options{
 		//ParamFunc: flag.CommandLine.Set,
@@ -106,13 +106,9 @@ func main() {
 				return errors.Wrap(err, "failed to execute template")
 			}
 
-			//contentString := content.String()
-
-			//n := fileName + "_url_registrator.go"
-			//f := pb.CodeGeneratorResponse_File{
-			//	Name:    &n,
-			//	Content: &contentString,
-			//}
+			if len(urls) == 0 {
+				continue
+			}
 
 			fi := gen.NewGeneratedFile(
 				fileName+"_url_registrator.go",
@@ -122,8 +118,6 @@ func main() {
 			if err != nil {
 				return errors.Wrap(err, "failed to write template")
 			}
-
-			//gen.
 		}
 
 		return nil
