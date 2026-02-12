@@ -21,8 +21,9 @@ import (
 )
 
 type Data struct {
-	PackageName string
-	Urls        []Path
+	PackageName  string
+	Urls         []Path
+	ClassPostfix string
 }
 
 type Path struct {
@@ -35,7 +36,6 @@ func main() {
 	protogen.Options{
 		//ParamFunc: flag.CommandLine.Set,
 	}.Run(func(gen *protogen.Plugin) error {
-		//res := gen.Response()
 
 		gen.SupportedFeatures = uint64(pb.CodeGeneratorResponse_FEATURE_PROTO3_OPTIONAL)
 
@@ -99,8 +99,9 @@ func main() {
 			content := strings.Builder{}
 
 			err = tplRegistrator.Execute(&content, Data{
-				PackageName: string(packageName),
-				Urls:        urls,
+				PackageName:  string(packageName),
+				Urls:         urls,
+				ClassPostfix: strings.ToUpper(string([]rune(fileName)[0])) + string([]rune(fileName[1:])),
 			})
 			if err != nil {
 				return errors.Wrap(err, "failed to execute template")
