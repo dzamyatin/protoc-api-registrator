@@ -1,4 +1,7 @@
-package "_PUTSOME"
+package templator
+
+const Template = `
+package {{.PackageName}}
 
 type Registrator struct {
 	url []string
@@ -7,7 +10,9 @@ type Registrator struct {
 func NewRegistrator() *Registrator {
 	return &Registrator{
 		url: []string{
-			"_PUTSOME",
+			{{range $k, $url := .Urls}}
+			  	{{$url}}
+			{{end}}
 		},
 	}
 }
@@ -15,3 +20,4 @@ func NewRegistrator() *Registrator {
 func (r *Registrator) GetRegistered() []string {
 	return r.url
 }
+`

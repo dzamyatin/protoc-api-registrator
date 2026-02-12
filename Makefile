@@ -12,3 +12,5 @@ protoc:
 
 
 #proto: https://github.com/googleapis/googleapis/tree/master/google/api
+
+#//go:generate protoc -I. -I./google --plugin=protoc-gen-logger=/home/dzamyatin/GolandProjects/protoc-api-registrator/bin/protoc-gen-logger --logger_out=../internal/grpc/generated/ --openapiv2_out . --go_out=../internal/grpc/generated/ --go_opt=paths=source_relative --go-grpc_out=../internal/grpc/generated/ --go-grpc_opt=paths=source_relative --grpc-gateway_out ../internal/grpc/generated/ --grpc-gateway_opt paths=source_relative --grpc-gateway_opt generate_unbound_methods=true auth.proto shop.proto
