@@ -6,6 +6,8 @@ import (
 	"text/template"
 
 	"github.com/dzamyatin/protoc-api-registrator/internal/templator"
+	pluginpb "github.com/dzamyatin/protoc-api-registrator/proto/generated"
+
 	//pluginpb "github.com/dzamyatin/protoc-api-registrator/proto/generated"
 
 	_ "github.com/dzamyatin/protoc-api-registrator/proto/generated/google/api"          //authomatically init to make oriti iotuion available to parse
@@ -35,6 +37,8 @@ func main() {
 	protogen.Options{
 		//ParamFunc: flag.CommandLine.Set,
 	}.Run(func(gen *protogen.Plugin) error {
+		res := gen.Response()
+
 		tplRegistrator, err := template.New("base").Parse(templator.Template)
 		if err != nil {
 			return errors.Wrap(err, "failed to parse template")
@@ -104,7 +108,6 @@ func main() {
 
 			contentString := content.String()
 
-			res := gen.Response()
 			n := fileName + "_url_registrator.go"
 			f := pb.CodeGeneratorResponse_File{
 				Name:    &n,
@@ -112,6 +115,9 @@ func main() {
 			}
 			res.File = append(res.File, &f)
 		}
+
+		i := uint64(pluginpb.CodeGeneratorResponse_FEATURE_PROTO3_OPTIONAL)
+		res.SupportedFeatures = &i
 
 		return nil
 	})
