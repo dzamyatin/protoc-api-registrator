@@ -6,8 +6,6 @@ import (
 	"text/template"
 
 	"github.com/dzamyatin/protoc-api-registrator/internal/templator"
-	pluginpb "github.com/dzamyatin/protoc-api-registrator/proto/generated"
-
 	//pluginpb "github.com/dzamyatin/protoc-api-registrator/proto/generated"
 
 	_ "github.com/dzamyatin/protoc-api-registrator/proto/generated/google/api"          //authomatically init to make oriti iotuion available to parse
@@ -37,7 +35,9 @@ func main() {
 	protogen.Options{
 		//ParamFunc: flag.CommandLine.Set,
 	}.Run(func(gen *protogen.Plugin) error {
-		res := gen.Response()
+		//res := gen.Response()
+
+		gen.SupportedFeatures = uint64(pb.CodeGeneratorResponse_FEATURE_PROTO3_OPTIONAL)
 
 		tplRegistrator, err := template.New("base").Parse(templator.Template)
 		if err != nil {
@@ -106,18 +106,25 @@ func main() {
 				return errors.Wrap(err, "failed to execute template")
 			}
 
-			contentString := content.String()
+			//contentString := content.String()
 
-			n := fileName + "_url_registrator.go"
-			f := pb.CodeGeneratorResponse_File{
-				Name:    &n,
-				Content: &contentString,
+			//n := fileName + "_url_registrator.go"
+			//f := pb.CodeGeneratorResponse_File{
+			//	Name:    &n,
+			//	Content: &contentString,
+			//}
+
+			fi := gen.NewGeneratedFile(
+				fileName+"_url_registrator.go",
+				protofile.GoImportPath,
+			)
+			_, err = fi.Write([]byte(content.String()))
+			if err != nil {
+				return errors.Wrap(err, "failed to write template")
 			}
-			res.File = append(res.File, &f)
-		}
 
-		i := uint64(pluginpb.CodeGeneratorResponse_FEATURE_PROTO3_OPTIONAL)
-		res.SupportedFeatures = &i
+			//gen.
+		}
 
 		return nil
 	})

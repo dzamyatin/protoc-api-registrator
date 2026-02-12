@@ -12,13 +12,13 @@ type Path struct {
 	Method string
 }
 
-func NewUrlRegistrator() *Registrator {
+func NewUrlRegistrator() *UrlRegistrator {
 	return &UrlRegistrator{
 		url: []Path{
 			{{range $k, $url := .Urls}}
 			  	{
-					Url:"{{$url.Url}}"
-					Method:"{{$url.Method}}"	
+					Url:"{{$url.Url}}",
+					Method:"{{$url.Method}}",	
 				},
 			{{end}}
 		},

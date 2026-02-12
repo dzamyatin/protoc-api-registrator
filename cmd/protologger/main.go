@@ -8,9 +8,9 @@ import (
 	"io"
 	"os"
 
-	pluginpb "github.com/dzamyatin/protoc-api-registrator/proto/generated"
 	"google.golang.org/grpc/encoding"
 	_ "google.golang.org/grpc/encoding/proto"
+	pb "google.golang.org/protobuf/types/pluginpb"
 )
 
 var protologgerFile = "/home/dzamyatin/GolandProjects/protoc-api-registrator/var/protologger/"
@@ -43,12 +43,12 @@ func main() {
 	out.Write(mb.Materialize())
 }
 
-func createResponse() pluginpb.CodeGeneratorResponse {
+func createResponse() pb.CodeGeneratorResponse {
 	i := uint64(1)
-	return pluginpb.CodeGeneratorResponse{
+	return pb.CodeGeneratorResponse{
 		Error:             nil,
 		SupportedFeatures: &i,
-		File:              []*pluginpb.CodeGeneratorResponse_File{},
+		File:              []*pb.CodeGeneratorResponse_File{},
 	}
 }
 
