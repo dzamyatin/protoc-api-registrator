@@ -3,7 +3,7 @@ package templator
 const Template = `
 package {{.PackageName}}
 
-type Registrator struct {
+type UrlRegistrator struct {
 	url []Path
 }
 
@@ -12,8 +12,8 @@ type Path struct {
 	Method string
 }
 
-func NewRegistrator() *Registrator {
-	return &Registrator{
+func NewUrlRegistrator() *Registrator {
+	return &UrlRegistrator{
 		url: []Path{
 			{{range $k, $url := .Urls}}
 			  	{
@@ -25,7 +25,7 @@ func NewRegistrator() *Registrator {
 	}
 }
 
-func (r *Registrator) GetRegistered() []Path {
+func (r *UrlRegistrator) GetRegistered() []Path {
 	return r.url
 }
 `
