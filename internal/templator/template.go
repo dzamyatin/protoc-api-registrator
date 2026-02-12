@@ -4,20 +4,28 @@ const Template = `
 package {{.PackageName}}
 
 type Registrator struct {
-	url []string
+	url []Path
+}
+
+type Path struct {
+	Url string
+	Method string
 }
 
 func NewRegistrator() *Registrator {
 	return &Registrator{
-		url: []string{
+		url: []Path{
 			{{range $k, $url := .Urls}}
-			  	{{$url}}
+			  	{
+					Url:"{{$url.Url}}"
+					Method:"{{$url.Method}}"	
+				},
 			{{end}}
 		},
 	}
 }
 
-func (r *Registrator) GetRegistered() []string {
+func (r *Registrator) GetRegistered() []Path {
 	return r.url
 }
 `

@@ -1,7 +1,7 @@
 package main
 
 import (
-	"io"
+	//"io"
 	"strings"
 	"text/template"
 
@@ -22,7 +22,12 @@ import (
 
 type Data struct {
 	PackageName string
-	Urls        []string
+	Urls        []Path
+}
+
+type Path struct {
+	Url    string
+	Method string
 }
 
 //go:generate protoc -I ./proto --go_out=./proto/generated/ --go_opt=paths=source_relative plugin.proto
@@ -30,8 +35,19 @@ func main() {
 	protogen.Options{
 		//ParamFunc: flag.CommandLine.Set,
 	}.Run(func(gen *protogen.Plugin) error {
+		tplRegistrator, err := template.New("base").Parse(templator.Template)
+		if err != nil {
+			return errors.Wrap(err, "failed to parse template")
+		}
+
 		protofiles := gen.Files
 		for _, protofile := range protofiles {
+			var (
+				packageName = protofile.GoPackageName // atomWebsite
+				fileName    = protofile.Proto.GetPackage()
+				urls        = make([]Path, 0)
+			)
+
 			for _, service := range protofile.Services {
 				for _, method := range service.Methods {
 					_ = method
@@ -45,40 +61,53 @@ func main() {
 
 						continue
 					}
-					p := e.GetPattern()
-					_ = p
 
-					//
-					var (
-						packageName = protofile.GoPackageName // atomWebsite
-						fileName    = protofile.Proto.GetPackage()
-					)
-
-					t, err := template.New("base").Parse(templator.Template)
-					if err != nil {
-						return errors.Wrap(err, "failed to parse template")
+					if url := e.GetGet(); url != "" {
+						urls = append(urls, Path{
+							Url:    url,
+							Method: "GET",
+						})
 					}
 
-					content := strings.Builder{}
-
-					t.Execute(&content, Data{
-						PackageName: string(packageName),
-						Urls: []string{
-							"",
-						},
-					})
-
-					res := gen.Response()
-					n := fileName + ".go"
-					f := pb.CodeGeneratorResponse_File{
-						Name: &n,
-						//InsertionPoint:    nil,
-						Content: nil,
-						//GeneratedCodeInfo: nil,
+					if url := e.GetPost(); url != "" {
+						urls = append(urls, Path{
+							Url:    url,
+							Method: "POST",
+						})
 					}
-					res.File = append(res.File, &f)
+
+					if url := e.GetDelete(); url != "" {
+						urls = append(urls, Path{
+							Url:    url,
+							Method: "DELETE",
+						})
+					}
+
+					if url := e.GetPut(); url != "" {
+						urls = append(urls, Path{
+							Url:    url,
+							Method: "PUT",
+						})
+					}
 				}
 			}
+
+			content := strings.Builder{}
+
+			tplRegistrator.Execute(&content, Data{
+				PackageName: string(packageName),
+				Urls:        urls,
+			})
+
+			contentString := content.String()
+
+			res := gen.Response()
+			n := fileName + "_url_registrator.go"
+			f := pb.CodeGeneratorResponse_File{
+				Name:    &n,
+				Content: &contentString,
+			}
+			res.File = append(res.File, &f)
 		}
 
 		return nil
