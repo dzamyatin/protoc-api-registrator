@@ -209,10 +209,12 @@ func makeUrlAsRuntimePattern(url string) string {
 	res := make([]string, 0)
 	for _, v := range strings.Split(url, "/") {
 		if strings.HasPrefix(v, "{") && strings.HasSuffix(v, "}") {
-			md, _ := strings.CutPrefix(v, "}")
+			md, _ := strings.CutSuffix(v, "}")
 
 			res = append(res, md+"=*}")
+			continue
 		}
+		res = append(res, v)
 	}
 
 	return strings.Join(res, "/")
