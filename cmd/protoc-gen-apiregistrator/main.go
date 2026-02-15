@@ -27,8 +27,9 @@ type Data struct {
 }
 
 type Path struct {
-	Url    string
-	Method string
+	Url        string
+	Method     string
+	UrlRuntime string
 }
 
 // //go:generate protoc -I ./proto --go_out=./proto/generated/ --go_opt=paths=source_relative plugin.proto
@@ -44,12 +45,25 @@ func main() {
 			return errors.Wrap(err, "failed to parse template")
 		}
 
+		tplRegistratorGlobal, err := template.New("base").Parse(templator.TemplateCommon)
+		if err != nil {
+			return errors.Wrap(err, "failed to parse template global")
+		}
+
+		urlAll := make([]Path, 0)
+
 		protofiles := gen.Files
+		var (
+			packageName protogen.GoPackageName
+			goImport    protogen.GoImportPath
+		)
+
 		for _, protofile := range protofiles {
+			packageName = protofile.GoPackageName // atomWebsite
+
 			var (
-				packageName = protofile.GoPackageName // atomWebsite
-				fileName    = protofile.Proto.GetPackage()
-				urls        = make([]Path, 0)
+				fileName = protofile.Proto.GetPackage()
+				urls     = make([]Path, 0)
 			)
 
 			for _, service := range protofile.Services {
@@ -68,59 +82,138 @@ func main() {
 
 					if url := e.GetGet(); url != "" {
 						urls = append(urls, Path{
-							Url:    url,
-							Method: "GET",
+							Url:        url,
+							UrlRuntime: makeUrlAsRuntimePattern(url),
+							Method:     "GET",
 						})
 					}
 
 					if url := e.GetPost(); url != "" {
 						urls = append(urls, Path{
-							Url:    url,
-							Method: "POST",
+							Url:        url,
+							UrlRuntime: makeUrlAsRuntimePattern(url),
+							Method:     "POST",
 						})
 					}
 
 					if url := e.GetDelete(); url != "" {
 						urls = append(urls, Path{
-							Url:    url,
-							Method: "DELETE",
+							Url:        url,
+							UrlRuntime: makeUrlAsRuntimePattern(url),
+							Method:     "DELETE",
 						})
 					}
 
 					if url := e.GetPut(); url != "" {
 						urls = append(urls, Path{
-							Url:    url,
-							Method: "PUT",
+							Url:        url,
+							UrlRuntime: makeUrlAsRuntimePattern(url),
+							Method:     "PUT",
 						})
 					}
 				}
-			}
-
-			content := strings.Builder{}
-
-			err = tplRegistrator.Execute(&content, Data{
-				PackageName:  string(packageName),
-				Urls:         urls,
-				ClassPostfix: strings.ToUpper(string([]rune(fileName)[0])) + string([]rune(fileName[1:])),
-			})
-			if err != nil {
-				return errors.Wrap(err, "failed to execute template")
 			}
 
 			if len(urls) == 0 {
 				continue
 			}
 
-			fi := gen.NewGeneratedFile(
+			err = writeToTpl(
+				gen,
+				tplRegistratorGlobal,
+				Data{
+					PackageName:  string(packageName),
+					Urls:         urls,
+					ClassPostfix: strings.ToUpper(string([]rune(fileName)[0])) + string([]rune(fileName[1:])),
+				},
 				fileName+"_url_registrator.go",
 				protofile.GoImportPath,
 			)
-			_, err = fi.Write([]byte(content.String()))
 			if err != nil {
-				return errors.Wrap(err, "failed to write template")
+				return err
 			}
+
+			//content := strings.Builder{}
+			//
+			//err = tplRegistrator.Execute(&content, Data{
+			//	PackageName:  string(packageName),
+			//	Urls:         urls,
+			//	ClassPostfix: strings.ToUpper(string([]rune(fileName)[0])) + string([]rune(fileName[1:])),
+			//})
+			//if err != nil {
+			//	return errors.Wrap(err, "failed to execute template")
+			//}
+			//
+			//fi := gen.NewGeneratedFile(
+			//	fileName+"_url_registrator.go",
+			//	protofile.GoImportPath,
+			//)
+			//_, err = fi.Write([]byte(content.String()))
+			//if err != nil {
+			//	return errors.Wrap(err, "failed to write template")
+			//}
+
+			urlAll = append(urlAll, urls...)
+		}
+
+		if len(urlAll) == 0 {
+			return nil
+		}
+
+		fileName := "common_global"
+		err = writeToTpl(
+			gen,
+			tplRegistrator,
+			Data{
+				PackageName: string(packageName),
+				Urls:        urlAll,
+			},
+			fileName+"_url_registrator.go",
+			goImport,
+		)
+		if err != nil {
+			return err
 		}
 
 		return nil
 	})
+}
+
+func writeToTpl(
+	gen *protogen.Plugin,
+	tplRegistrator *template.Template,
+	data Data,
+	fileName string,
+	goImportPath protogen.GoImportPath,
+) error {
+	content := strings.Builder{}
+
+	err := tplRegistrator.Execute(&content, data)
+	if err != nil {
+		return errors.Wrap(err, "failed to execute template")
+	}
+
+	fi := gen.NewGeneratedFile(
+		fileName+"_url_registrator.go",
+		goImportPath,
+	)
+	_, err = fi.Write([]byte(content.String()))
+	if err != nil {
+		return errors.Wrap(err, "failed to write template")
+	}
+
+	return nil
+}
+
+func makeUrlAsRuntimePattern(url string) string {
+	res := make([]string, 0)
+	for _, v := range strings.Split(url, "/") {
+		if strings.HasPrefix(v, "{") && strings.HasSuffix(v, "}") {
+			md, _ := strings.CutPrefix(v, "}")
+
+			res = append(res, md+"=*}")
+		}
+	}
+
+	return strings.Join(res, "/")
 }
