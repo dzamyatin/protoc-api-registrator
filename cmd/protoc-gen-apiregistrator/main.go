@@ -120,7 +120,7 @@ func main() {
 
 			err = writeToTpl(
 				gen,
-				tplRegistratorGlobal,
+				tplRegistrator,
 				Data{
 					PackageName:  string(packageName),
 					Urls:         urls,
@@ -163,7 +163,7 @@ func main() {
 		fileName := "common_global"
 		err = writeToTpl(
 			gen,
-			tplRegistrator,
+			tplRegistratorGlobal,
 			Data{
 				PackageName: string(packageName),
 				Urls:        urlAll,
@@ -194,7 +194,7 @@ func writeToTpl(
 	}
 
 	fi := gen.NewGeneratedFile(
-		fileName+"_url_registrator.go",
+		fileName,
 		goImportPath,
 	)
 	_, err = fi.Write([]byte(content.String()))
